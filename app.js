@@ -122,10 +122,19 @@ function checkDailyReset() {
 }
 
 /* =========================================
-   ROUTER
+   ROUTER (CORRIGÉ POUR LE BUG MODALE)
    ========================================= */
 function router(viewName) {
     document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+    
+    // --- FIX : Forcer la fermeture de la modale Objectif ---
+    const modal = document.getElementById('goal-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.add('opacity-0'); // Reset animation
+    }
+    // -------------------------------------------------------
+
     document.getElementById(`view-${viewName}`).classList.remove('hidden');
     
     if (viewName !== 'workout') currentSessionGoal = "";
@@ -381,9 +390,15 @@ function renderMuscleInterface(plan, container) {
     goalBanner.innerHTML = `🔥 Objectif : <span class="text-white">${currentSessionGoal || 'EXPLOSER TOUT'}</span>`;
     container.appendChild(goalBanner);
 
+    // Date pour filtrer les sets d'aujourd'hui
+    const todayStr = new Date().toISOString().split('T')[0];
+
     plan.exos.forEach((exo, idx) => {
         const history = state.workouts.filter(w => w.exo === exo).slice(-5).reverse();
         const lastSet = history[0];
+
+        // --- NOUVEAU : Calculer les séries faites aujourd'hui ---
+        const todaySets = state.workouts.filter(w => w.exo === exo && w.date.startsWith(todayStr)).length;
 
         let targetText = "Nouveau";
         let defaultKg = "";
@@ -405,7 +420,10 @@ function renderMuscleInterface(plan, container) {
         }
 
         const card = document.createElement('div');
-        card.className = "glass p-4 rounded-2xl border border-gray-800";
+        // Bordure verte si 3 sets ou plus
+        const borderColor = todaySets >= 3 ? "border-accent" : "border-gray-800";
+        card.className = `glass p-4 rounded-2xl border ${borderColor} transition-colors duration-300`;
+        
         card.innerHTML = `
             <div class="flex justify-between items-center mb-1">
                 <h3 class="font-bold text-white text-lg">${exo}</h3>
@@ -413,7 +431,9 @@ function renderMuscleInterface(plan, container) {
             </div>
             
             <div class="flex justify-between items-center mb-3">
-                <span class="text-[10px] text-gray-500 bg-surface px-2 py-1 rounded border border-gray-700">Dernier: ${lastSet ? lastSet.kg + 'kg x ' + lastSet.reps : '-'}</span>
+                <span class="text-xs font-bold ${todaySets > 0 ? 'text-accent' : 'text-gray-600'}">
+                    Séries faites : ${todaySets}
+                </span>
                 <span class="text-xs text-accent font-mono font-bold">${targetText}</span>
             </div>
 
@@ -436,7 +456,7 @@ function renderMuscleInterface(plan, container) {
             </div>
 
             <button onclick="logSet('${exo}', 'kg-${idx}', 'reps-${idx}')" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-900/40 active:scale-95 transition-transform">
-                VALIDER SET
+                VALIDER SET ${todaySets + 1}
             </button>
         `;
         container.appendChild(card);
@@ -467,7 +487,9 @@ function logSet(exo, kgId, repsId) {
     saveData();
     showToast(`Set validé: ${kg}kg x ${reps}`);
     openTimer();
-    renderDashboard(); 
+    renderDashboard(); // Update stats background
+    // Pour mettre à jour le compteur en temps réel sans recharger la vue complète, on recharge juste la vue
+    renderWorkoutView();
 }
 
 function showHistory(exo) {
