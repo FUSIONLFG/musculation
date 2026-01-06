@@ -122,18 +122,16 @@ function checkDailyReset() {
 }
 
 /* =========================================
-   ROUTER (CORRIGÉ POUR LE BUG MODALE)
+   ROUTER
    ========================================= */
 function router(viewName) {
     document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
     
-    // --- FIX : Forcer la fermeture de la modale Objectif ---
     const modal = document.getElementById('goal-modal');
     if (modal) {
         modal.classList.add('hidden');
-        modal.classList.add('opacity-0'); // Reset animation
+        modal.classList.add('opacity-0'); 
     }
-    // -------------------------------------------------------
 
     document.getElementById(`view-${viewName}`).classList.remove('hidden');
     
@@ -349,7 +347,6 @@ function renderWorkoutView() {
     }
 
     if (!plan.type.includes('swim') && !currentSessionGoal) {
-        // --- AFFICHER MODALE AU LIEU DE PROMPT ---
         const modal = document.getElementById('goal-modal');
         const content = document.getElementById('goal-modal-content');
         
@@ -359,7 +356,7 @@ function renderWorkoutView() {
             content.classList.remove('scale-95');
             content.classList.add('scale-100');
         }, 10);
-        return; // Stop ici
+        return; 
     }
 
     if (plan.type.includes('swim')) {
@@ -380,7 +377,7 @@ function selectGoal(goal) {
     
     setTimeout(() => {
         modal.classList.add('hidden');
-        renderWorkoutView(); // Relancer
+        renderWorkoutView(); 
     }, 300);
 }
 
@@ -390,23 +387,22 @@ function renderMuscleInterface(plan, container) {
     goalBanner.innerHTML = `🔥 Objectif : <span class="text-white">${currentSessionGoal || 'EXPLOSER TOUT'}</span>`;
     container.appendChild(goalBanner);
 
-    // Date pour filtrer les sets d'aujourd'hui
     const todayStr = new Date().toISOString().split('T')[0];
 
     plan.exos.forEach((exo, idx) => {
         const history = state.workouts.filter(w => w.exo === exo).slice(-5).reverse();
         const lastSet = history[0];
-
-        // --- NOUVEAU : Calculer les séries faites aujourd'hui ---
         const todaySets = state.workouts.filter(w => w.exo === exo && w.date.startsWith(todayStr)).length;
 
         let targetText = "Nouveau";
         let defaultKg = "";
         let defaultReps = "";
+        let lastPerfText = "Historique vide";
 
         if (lastSet) {
             defaultKg = lastSet.kg;
             defaultReps = lastSet.reps;
+            lastPerfText = `Dernier : ${lastSet.kg}kg x ${lastSet.reps}`;
 
             if (currentSessionGoal === "+1 Rep") {
                 targetText = `Cible : ${lastSet.kg}kg x ${Number(lastSet.reps) + 1}`;
@@ -420,7 +416,6 @@ function renderMuscleInterface(plan, container) {
         }
 
         const card = document.createElement('div');
-        // Bordure verte si 3 sets ou plus
         const borderColor = todaySets >= 3 ? "border-accent" : "border-gray-800";
         card.className = `glass p-4 rounded-2xl border ${borderColor} transition-colors duration-300`;
         
@@ -430,11 +425,15 @@ function renderMuscleInterface(plan, container) {
                 <button onclick="showHistory('${exo}')" class="text-primary text-xs">Historique</button>
             </div>
             
-            <div class="flex justify-between items-center mb-3">
+            <div class="flex justify-between items-center mb-1">
                 <span class="text-xs font-bold ${todaySets > 0 ? 'text-accent' : 'text-gray-600'}">
                     Séries faites : ${todaySets}
                 </span>
                 <span class="text-xs text-accent font-mono font-bold">${targetText}</span>
+            </div>
+            
+            <div class="text-[10px] text-gray-500 mb-3 text-right italic border-b border-gray-800 pb-1">
+                ${lastPerfText}
             </div>
 
             <div class="flex items-center gap-2 mb-2">
@@ -487,8 +486,7 @@ function logSet(exo, kgId, repsId) {
     saveData();
     showToast(`Set validé: ${kg}kg x ${reps}`);
     openTimer();
-    renderDashboard(); // Update stats background
-    // Pour mettre à jour le compteur en temps réel sans recharger la vue complète, on recharge juste la vue
+    renderDashboard(); 
     renderWorkoutView();
 }
 
