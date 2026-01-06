@@ -51,7 +51,6 @@ const DAYS_PLAN = [
     }
 ];
 
-// Affichage visuel (la génération ICS a sa propre logique)
 const DIET_PLAN = [
     { time: "07:30", label: "Petit Déjeuner", desc: "Oeufs, Avoine, Fruit, Café" },
     { time: "10:30", label: "Collation Matin", desc: "Fruit, Amandes, Shaker" },
@@ -180,7 +179,6 @@ function renderDashboard() {
     document.getElementById('dash-water').innerText = state.nutrition.water.toFixed(1) + ' L';
     document.getElementById('dash-streak').innerText = calculateStreak() + 'j';
 
-    // --- SÉANCES HEBDO RATIO ---
     const activeDaysThisWeek = new Set();
     weekLogs.forEach(w => activeDaysThisWeek.add(w.date.split('T')[0]));
     swimLogs.forEach(s => activeDaysThisWeek.add(s.date.split('T')[0]));
@@ -274,55 +272,39 @@ function addWater(amount) {
 }
 
 /* =========================================
-   CALENDAR EXPORT (ADVANCED REMINDERS)
+   CALENDAR EXPORT
    ========================================= */
 function downloadCalendar() {
     let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//ChadTracker//NONSGML v1.0//EN\nCALSCALE:GREGORIAN\nMETHOD:PUBLISH\n";
 
     const daysICS = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
-
-    // 1. RAPPEL EAU : Toutes les 1h30 de 8h à 22h
-    // 8:00, 9:30, 11:00, 12:30, 14:00, 15:30, 17:00, 18:30, 20:00, 21:30
     const waterTimes = ["080000", "093000", "110000", "123000", "140000", "153000", "170000", "183000", "200000", "213000"];
+    
     waterTimes.forEach(t => {
         icsContent += `BEGIN:VEVENT\nSUMMARY:💧 Hydratation\nRRULE:FREQ=DAILY\nDTSTART;TZID=Europe/Paris:20240101T${t}\nDURATION:PT5M\nEND:VEVENT\n`;
     });
 
-    // 2. COLLATIONS SPÉCIFIQUES
-    // 10:30 Collation
     icsContent += `BEGIN:VEVENT\nSUMMARY:🍎 Collation Matin\nRRULE:FREQ=DAILY\nDTSTART;TZID=Europe/Paris:20240101T103000\nDURATION:PT15M\nEND:VEVENT\n`;
-    // 17:00 Collation (se superpose à l'eau, mais c'est bien d'avoir le rappel spécifique)
     icsContent += `BEGIN:VEVENT\nSUMMARY:🍌 Collation Aprems\nRRULE:FREQ=DAILY\nDTSTART;TZID=Europe/Paris:20240101T170000\nDURATION:PT15M\nEND:VEVENT\n`;
 
-    // 3. MORNING BRIEF 7H
     DAYS_PLAN.forEach((day, index) => {
         const dayCode = daysICS[index];
         icsContent += `BEGIN:VEVENT\nSUMMARY:📅 Auj: ${day.name}\nRRULE:FREQ=WEEKLY;BYDAY=${dayCode}\nDTSTART;TZID=Europe/Paris:20240101T070000\nDURATION:PT10M\nEND:VEVENT\n`;
     });
 
-    // 4. DIMANCHE TASKS
-    // 17h Batch Cooking (Sunday only)
     icsContent += `BEGIN:VEVENT\nSUMMARY:🔪 Batch Cooking\nDESCRIPTION:Prépare tes repas de la semaine !\nRRULE:FREQ=WEEKLY;BYDAY=SU\nDTSTART;TZID=Europe/Paris:20240101T170000\nDURATION:PT2H\nEND:VEVENT\n`;
-    // 20h30 Export Backup (Sunday only)
     icsContent += `BEGIN:VEVENT\nSUMMARY:💾 Backup Export JSON\nDESCRIPTION:Sécurise tes données ChadTracker.\nRRULE:FREQ=WEEKLY;BYDAY=SU\nDTSTART;TZID=Europe/Paris:20240101T203000\nDURATION:PT5M\nEND:VEVENT\n`;
-
-    // 5. DIGITAL WELLBEING (Semaine 22h15)
-    // MO, TU, WE, TH, FR
     icsContent += `BEGIN:VEVENT\nSUMMARY:📵 Arrêt Téléphone\nDESCRIPTION:Mode Avion activé. Lecture ou dodo.\nRRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR\nDTSTART;TZID=Europe/Paris:20240101T221500\nDURATION:PT30M\nEND:VEVENT\n`;
 
-    // 6. PRÉPA SAC PISCINE (Veille au soir)
     DAYS_PLAN.forEach((day, index) => {
         if(day.type.includes('swim')) {
-            // Trouver la veille
             let prevIndex = index - 1;
             if(prevIndex < 0) prevIndex = 6;
             const prevDayCode = daysICS[prevIndex];
-            
             icsContent += `BEGIN:VEVENT\nSUMMARY:🎒 Sac Piscine\nDESCRIPTION:N'oublie pas : Maillot, bonnet, lunettes pour demain !\nRRULE:FREQ=WEEKLY;BYDAY=${prevDayCode}\nDTSTART;TZID=Europe/Paris:20240101T220000\nDURATION:PT15M\nEND:VEVENT\n`;
         }
     });
 
-    // 7. LES SÉANCES SPORT (18h)
     DAYS_PLAN.forEach((day, index) => {
         if(day.type === 'rest') return;
         const dayCode = daysICS[index];
@@ -358,10 +340,17 @@ function renderWorkoutView() {
     }
 
     if (!plan.type.includes('swim') && !currentSessionGoal) {
-        const choice = prompt("🎯 Objectif de la séance ?\n\n1. +1 Rep (Surcharge progressive)\n2. +2.5 kg (Force)\n3. Maintenir (Fatigue/Deload)\n\n(Tape 1, 2 ou 3)");
-        if (choice === '1') currentSessionGoal = "+1 Rep";
-        else if (choice === '2') currentSessionGoal = "+2.5 kg";
-        else currentSessionGoal = "Maintien";
+        // --- AFFICHER MODALE AU LIEU DE PROMPT ---
+        const modal = document.getElementById('goal-modal');
+        const content = document.getElementById('goal-modal-content');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }, 10);
+        return; // Stop ici
     }
 
     if (plan.type.includes('swim')) {
@@ -369,6 +358,21 @@ function renderWorkoutView() {
     } else {
         renderMuscleInterface(plan, container);
     }
+}
+
+function selectGoal(goal) {
+    currentSessionGoal = goal;
+    const modal = document.getElementById('goal-modal');
+    const content = document.getElementById('goal-modal-content');
+    
+    modal.classList.add('opacity-0'); 
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        renderWorkoutView(); // Relancer
+    }, 300);
 }
 
 function renderMuscleInterface(plan, container) {
@@ -723,46 +727,6 @@ function logWeight() {
         saveData();
         showToast("Poids enregistré");
         switchStatTab('weight');
-    }
-}
-
-/* =========================================
-   CALENDAR
-   ========================================= */
-function renderCalendar() {
-    const grid = document.getElementById('calendar-grid');
-    while(grid.children.length > 7) { grid.removeChild(grid.lastChild); }
-
-    const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
-    
-    const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-
-    for(let i=0; i<startOffset; i++) {
-        const div = document.createElement('div');
-        grid.appendChild(div);
-    }
-
-    for(let d=1; d<=daysInMonth; d++) {
-        const dateStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
-        
-        const hasMuscle = state.workouts.some(w => w.date.startsWith(dateStr));
-        const hasSwim = state.swims.some(s => s.date.startsWith(dateStr));
-
-        const cell = document.createElement('div');
-        cell.className = "h-10 flex flex-col items-center justify-center rounded-lg border border-gray-800 relative " + 
-                         (dateStr === now.toISOString().split('T')[0] ? "bg-gray-800" : "");
-        
-        cell.innerHTML = `<span class="text-xs text-gray-300">${d}</span>`;
-        
-        if(hasMuscle || hasSwim) {
-            const dot = document.createElement('div');
-            dot.className = `w-2 h-2 rounded-full mt-1 ${hasSwim ? 'bg-accent' : 'bg-primary'}`;
-            cell.appendChild(dot);
-        }
-
-        grid.appendChild(cell);
     }
 }
 

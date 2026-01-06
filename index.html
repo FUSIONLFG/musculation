@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHAD TRACKER V5</title>
+    <title>CHAD TRACKER V6</title>
     <meta name="description" content="Ultimate Workout & Diet Tracker">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b1220">
@@ -267,6 +267,53 @@
             <button onclick="adjustTimer(30)" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold border border-gray-700">+30s</button>
         </div>
         <button onclick="closeTimer()" class="w-full bg-primary text-white py-4 rounded-xl font-bold">Masquer (Timer continue)</button>
+    </div>
+
+    <div id="goal-modal" class="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="glass w-[90%] max-w-md p-6 rounded-3xl border border-primary/30 relative transform transition-all scale-95 duration-300" id="goal-modal-content">
+            
+            <div class="text-center mb-8">
+                <div class="text-4xl mb-2">🎯</div>
+                <h3 class="text-2xl font-bold text-white tracking-tight">Objectif du jour</h3>
+                <p class="text-sm text-gray-400 mt-1">Choisis ta stratégie pour cette séance</p>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="selectGoal('+1 Rep')" class="group w-full relative overflow-hidden bg-surface hover:bg-primary/20 border border-primary/30 p-4 rounded-2xl text-left transition-all active:scale-95">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-colors">1</div>
+                        <div>
+                            <div class="font-bold text-white text-lg">+1 Répétition</div>
+                            <div class="text-xs text-gray-400">Surcharge progressive (Hypertrophie)</div>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="selectGoal('+2.5 kg')" class="group w-full relative overflow-hidden bg-surface hover:bg-warning/20 border border-warning/30 p-4 rounded-2xl text-left transition-all active:scale-95">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-warning/20 flex items-center justify-center text-warning font-bold group-hover:bg-warning group-hover:text-black transition-colors">2</div>
+                        <div>
+                            <div class="font-bold text-white text-lg">+2.5 kg</div>
+                            <div class="text-xs text-gray-400">Gain de force pure</div>
+                        </div>
+                    </div>
+                </button>
+
+                <button onclick="selectGoal('Maintien')" class="group w-full relative overflow-hidden bg-surface hover:bg-gray-700 border border-gray-700 p-4 rounded-2xl text-left transition-all active:scale-95">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 font-bold group-hover:bg-gray-600 group-hover:text-white transition-colors">3</div>
+                        <div>
+                            <div class="font-bold text-gray-300 text-lg">Maintien</div>
+                            <div class="text-xs text-gray-500">Fatigue ou Deload</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="router('home')" class="text-xs text-gray-500 hover:text-white underline">Annuler et retour</button>
+            </div>
+        </div>
     </div>
 
     <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-accent text-black px-6 py-3 rounded-full shadow-xl font-bold text-sm opacity-0 transition-opacity z-[70] pointer-events-none">
