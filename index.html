@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CHAD TRACKER V3</title>
+    <meta name="description" content="Ultimate Workout Tracker">
+    <link rel="manifest" href="manifest.json">
+    <link rel="theme-color" content="#0b1220">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#0b1220',
+                        surface: '#111b2e',
+                        primary: '#3b82f6',
+                        accent: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-bg text-gray-200 font-sans h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-white">
+
+    <aside class="hidden md:flex flex-col w-64 bg-surface border-r border-gray-800 h-full fixed left-0 top-0 z-20">
+        <div class="p-6 text-2xl font-bold tracking-tighter text-primary">CHAD<span class="text-white">TRACKER</span></div>
+        <nav class="flex-1 px-4 space-y-2">
+            <button onclick="router('home')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">🏠 Accueil</button>
+            <button onclick="router('workout')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">💪 Séance</button>
+            <button onclick="router('stats')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">📈 Stats</button>
+            <button onclick="router('calendar')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">📅 Calendrier</button>
+            <button onclick="router('settings')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">⚙️ Réglages</button>
+        </nav>
+    </aside>
+
+    <main id="main-container" class="flex-1 md:ml-64 h-full overflow-y-auto pb-24 md:pb-6 relative">
+        
+        <header class="md:hidden flex items-center justify-between p-4 bg-surface/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-800">
+            <div class="text-lg font-bold tracking-tighter text-primary">CHAD<span class="text-white">TRACKER</span></div>
+            <div id="header-date" class="text-xs text-gray-400"></div>
+        </header>
+
+        <div id="view-home" class="p-4 md:p-8 space-y-6 animate-fade-in">
+            <div class="glass p-6 rounded-2xl border-l-4 border-accent relative overflow-hidden">
+                <p id="quote-text" class="text-lg italic text-gray-300 relative z-10">"La douleur est temporaire, la gloire est éternelle."</p>
+                <div class="absolute -right-4 -bottom-4 text-9xl opacity-5 text-accent">❝</div>
+            </div>
+
+            <div id="suggestion-box" class="glass p-4 rounded-2xl border border-primary/20 hidden">
+                <h3 class="text-primary font-bold text-sm uppercase mb-1">💡 Suggestion du jour</h3>
+                <p id="suggestion-text" class="text-sm text-gray-300"></p>
+            </div>
+
+            <div class="glass p-6 rounded-2xl shadow-lg shadow-black/20">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white mb-1">Séance du jour</h2>
+                        <p id="today-workout-name" class="text-accent font-medium">Chargement...</p>
+                    </div>
+                    <div id="today-icon" class="text-4xl">🏋️</div>
+                </div>
+                <button onclick="router('workout')" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/50 transition-all active:scale-95">
+                    DÉMARRER LA SÉANCE
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-400 uppercase">Poids (kg)</p>
+                    <p id="dash-weight" class="text-2xl font-bold text-white mt-1">--</p>
+                </div>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-400 uppercase">Streak 🔥</p>
+                    <p id="dash-streak" class="text-2xl font-bold text-warning mt-1">0j</p>
+                </div>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-400 uppercase">Volume Semaine</p>
+                    <p id="dash-vol" class="text-xl font-bold text-white mt-1">0 kg</p>
+                </div>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-400 uppercase">Nage Semaine</p>
+                    <p id="dash-swim" class="text-xl font-bold text-white mt-1">0 m</p>
+                </div>
+            </div>
+
+            <div class="glass p-4 rounded-2xl">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-gray-400 text-xs uppercase font-bold">Objectif actuel</h3>
+                    <button onclick="editGoal()" class="text-primary text-xs">Modifier</button>
+                </div>
+                <p id="dash-goal" class="text-white font-medium">Définir un objectif...</p>
+            </div>
+        </div>
+
+        <div id="view-workout" class="hidden p-4 md:p-8 pb-32 animate-fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="workout-title" class="text-2xl font-bold text-white">Séance</h2>
+                <div id="workout-timer-display" class="hidden font-mono text-xl text-accent bg-surface px-3 py-1 rounded-lg border border-gray-700">00:00</div>
+            </div>
+
+            <div id="workout-container" class="space-y-6">
+                </div>
+            
+            <div class="h-24"></div> </div>
+
+        <div id="view-stats" class="hidden p-4 md:p-8 space-y-6 animate-fade-in">
+            <h2 class="text-2xl font-bold text-white">Analyses</h2>
+            
+            <div class="flex space-x-2 overflow-x-auto pb-2 no-scrollbar">
+                <button onclick="switchStatTab('weight')" class="stat-tab-btn px-4 py-2 bg-surface rounded-full text-sm border border-gray-700 whitespace-nowrap active-tab">Poids</button>
+                <button onclick="switchStatTab('muscle')" class="stat-tab-btn px-4 py-2 bg-surface rounded-full text-sm border border-gray-700 whitespace-nowrap">Muscu</button>
+                <button onclick="switchStatTab('swim')" class="stat-tab-btn px-4 py-2 bg-surface rounded-full text-sm border border-gray-700 whitespace-nowrap">Natation</button>
+            </div>
+
+            <div class="glass p-4 rounded-2xl h-80 relative">
+                <canvas id="mainChart"></canvas>
+            </div>
+
+            <div id="stats-weight-controls" class="stat-control">
+                <div class="flex gap-2">
+                    <input type="number" id="new-weight" placeholder="Poids (kg)" class="bg-bg border border-gray-700 rounded-xl px-4 py-3 text-white flex-1 focus:ring-2 focus:ring-primary outline-none">
+                    <button onclick="logWeight()" class="bg-primary text-white px-6 rounded-xl font-bold">Add</button>
+                </div>
+            </div>
+
+            <div id="stats-muscle-controls" class="stat-control hidden space-y-4">
+                <select id="stats-exo-select" onchange="updateMuscleStats()" class="w-full bg-bg border border-gray-700 rounded-xl px-4 py-3 text-white outline-none">
+                    </select>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="glass p-2 rounded-xl text-center">
+                        <span class="text-[10px] text-gray-400">PR Poids</span>
+                        <div id="pr-weight" class="font-bold text-accent">-</div>
+                    </div>
+                    <div class="glass p-2 rounded-xl text-center">
+                        <span class="text-[10px] text-gray-400">PR Volume</span>
+                        <div id="pr-volume" class="font-bold text-white">-</div>
+                    </div>
+                    <div class="glass p-2 rounded-xl text-center">
+                        <span class="text-[10px] text-gray-400">Max Reps</span>
+                        <div id="pr-reps" class="font-bold text-white">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="stats-swim-controls" class="stat-control hidden">
+                 <div class="glass p-4 rounded-xl flex justify-between items-center">
+                    <span class="text-sm text-gray-400">Best Pace (30j)</span>
+                    <span id="best-swim-pace" class="font-bold text-accent font-mono">--:-- /100m</span>
+                 </div>
+            </div>
+        </div>
+
+        <div id="view-calendar" class="hidden p-4 md:p-8 animate-fade-in">
+            <h2 class="text-2xl font-bold text-white mb-6">Historique</h2>
+            <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center mb-4">
+                <div class="text-xs text-gray-500 py-2">L</div>
+                <div class="text-xs text-gray-500 py-2">M</div>
+                <div class="text-xs text-gray-500 py-2">M</div>
+                <div class="text-xs text-gray-500 py-2">J</div>
+                <div class="text-xs text-gray-500 py-2">V</div>
+                <div class="text-xs text-gray-500 py-2">S</div>
+                <div class="text-xs text-gray-500 py-2">D</div>
+                </div>
+            <div class="mt-6 glass p-4 rounded-2xl">
+                <h3 class="text-sm font-bold text-white mb-2">Légende</h3>
+                <div class="flex gap-3 text-xs">
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-primary"></span> Muscu</div>
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-accent"></span> Nage</div>
+                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-600"></span> Repos</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-settings" class="hidden p-4 md:p-8 space-y-6 animate-fade-in">
+            <h2 class="text-2xl font-bold text-white">Réglages</h2>
+            
+            <div class="glass rounded-2xl overflow-hidden divide-y divide-gray-800">
+                <div class="p-4 flex justify-between items-center">
+                    <span>Timer par défaut (sec)</span>
+                    <input type="number" id="setting-timer" class="bg-bg w-20 p-2 rounded text-center text-white border border-gray-700" value="90">
+                </div>
+                <div class="p-4 flex justify-between items-center">
+                    <span>Notifications</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="setting-notif" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="exportData()" class="w-full bg-surface border border-gray-700 hover:bg-gray-800 text-white py-3 rounded-xl font-medium">📤 Exporter JSON</button>
+                <div class="relative">
+                    <button class="w-full bg-surface border border-gray-700 hover:bg-gray-800 text-white py-3 rounded-xl font-medium">📥 Importer JSON</button>
+                    <input type="file" onchange="importData(this)" class="absolute inset-0 opacity-0 cursor-pointer">
+                </div>
+                <button onclick="resetApp()" class="w-full bg-red-900/20 border border-red-900 text-red-400 hover:bg-red-900/40 py-3 rounded-xl font-medium">⚠️ Reset Complet</button>
+                <a href="README.md" target="_blank" class="block text-center text-xs text-gray-500 mt-4">Voir l'aide d'installation (iPhone)</a>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface/90 backdrop-blur-lg border-t border-gray-800 flex justify-around items-center h-20 pb-4 z-50">
+        <button onclick="router('home')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
+            <span class="text-xl mb-1">🏠</span>
+            <span class="text-[10px]">Accueil</span>
+        </button>
+        <button onclick="router('workout')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
+            <span class="text-xl mb-1">💪</span>
+            <span class="text-[10px]">Go</span>
+        </button>
+        <button onclick="router('stats')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
+            <span class="text-xl mb-1">📈</span>
+            <span class="text-[10px]">Stats</span>
+        </button>
+        <button onclick="router('calendar')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
+            <span class="text-xl mb-1">📅</span>
+            <span class="text-[10px]">Agenda</span>
+        </button>
+        <button onclick="router('settings')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
+            <span class="text-xl mb-1">⚙️</span>
+            <span class="text-[10px]">Opts</span>
+        </button>
+    </nav>
+
+    <div id="timer-modal" class="fixed inset-x-0 bottom-0 bg-surface border-t border-gray-700 p-6 z-[60] transform translate-y-full transition-transform duration-300 shadow-2xl rounded-t-3xl">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-gray-400 text-sm uppercase font-bold">Repos</h3>
+            <button onclick="closeTimer()" class="text-gray-400 text-2xl">&times;</button>
+        </div>
+        <div class="text-center mb-8">
+            <div id="timer-countdown" class="text-6xl font-mono font-bold text-white tracking-widest">00:00</div>
+        </div>
+        <div class="flex gap-4 mb-6">
+            <button onclick="adjustTimer(-10)" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold border border-gray-700">-10s</button>
+            <button onclick="adjustTimer(30)" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold border border-gray-700">+30s</button>
+        </div>
+        <button onclick="closeTimer()" class="w-full bg-primary text-white py-4 rounded-xl font-bold">Masquer (Timer continue)</button>
+    </div>
+
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-accent text-black px-6 py-3 rounded-full shadow-xl font-bold text-sm opacity-0 transition-opacity z-[70] pointer-events-none">
+        Action validée
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // Init SW
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "CHAD TRACKER V3",
+  "short_name": "ChadTracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/3b82f6/ffffff?text=CT",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/3b82f6/ffffff?text=CT",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
