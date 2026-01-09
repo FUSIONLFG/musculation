@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CHAD TRACKER</title>
+    <title>CHAD TRACKER | Legacy</title>
     <meta name="description" content="Ultimate Workout & Diet Tracker">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0b1220">
@@ -21,10 +21,20 @@
                         primary: '#3b82f6',
                         accent: '#10b981',
                         warning: '#f59e0b',
-                        danger: '#ef4444'
+                        danger: '#ef4444',
+                        gold: '#fbbf24' 
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
@@ -32,6 +42,11 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass { background: rgba(17, 27, 46, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    </style>
 </head>
 <body class="bg-bg text-gray-200 font-sans h-screen flex flex-col overflow-hidden selection:bg-primary selection:text-white">
 
@@ -41,13 +56,13 @@
             <button onclick="router('home')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">🏠 Accueil</button>
             <button onclick="router('workout')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">💪 Séance</button>
             <button onclick="router('nutrition')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">🍗 Nutrition</button>
-            <button onclick="router('stats')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">📈 Stats</button>
+            <button onclick="router('stats')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">🏆 Trophées</button>
             <button onclick="router('calendar')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">📅 Calendrier</button>
             <button onclick="router('settings')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center gap-3">⚙️ Réglages</button>
         </nav>
     </aside>
 
-    <main id="main-container" class="flex-1 md:ml-64 h-full overflow-y-auto pb-24 md:pb-6 relative">
+    <main id="main-container" class="flex-1 md:ml-64 h-full overflow-y-auto pb-24 md:pb-6 relative scroll-smooth">
         
         <header class="md:hidden flex items-center justify-between p-4 bg-surface/80 backdrop-blur-md sticky top-0 z-10 border-b border-gray-800">
             <div class="text-lg font-bold tracking-tighter text-primary">CHAD<span class="text-white">TRACKER</span></div>
@@ -146,7 +161,14 @@
         </div>
 
         <div id="view-stats" class="hidden p-4 md:p-8 space-y-6 animate-fade-in">
-            <h2 class="text-2xl font-bold text-white">Analyses</h2>
+            
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">Salle des Trophées 🏆</h2>
+                <div id="trophy-grid" class="grid grid-cols-3 gap-3">
+                    </div>
+            </div>
+
+            <h2 class="text-xl font-bold text-white">Analyses</h2>
             <div class="flex space-x-2 overflow-x-auto pb-2 no-scrollbar">
                 <button onclick="switchStatTab('weight')" class="stat-tab-btn px-4 py-2 bg-surface rounded-full text-sm border border-gray-700 whitespace-nowrap active-tab">Poids</button>
                 <button onclick="switchStatTab('muscle')" class="stat-tab-btn px-4 py-2 bg-surface rounded-full text-sm border border-gray-700 whitespace-nowrap">Muscu</button>
@@ -155,6 +177,7 @@
             <div class="glass p-4 rounded-2xl h-80 relative">
                 <canvas id="mainChart"></canvas>
             </div>
+            
             <div id="stats-weight-controls" class="stat-control">
                 <div class="flex gap-2">
                     <input type="number" id="new-weight" placeholder="Poids (kg)" class="bg-bg border border-gray-700 rounded-xl px-4 py-3 text-white flex-1 focus:ring-2 focus:ring-primary outline-none">
@@ -243,8 +266,8 @@
             <span class="text-[10px]">Diet</span>
         </button>
         <button onclick="router('stats')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
-            <span class="text-xl mb-1">📈</span>
-            <span class="text-[10px]">Stats</span>
+            <span class="text-xl mb-1">🏆</span>
+            <span class="text-[10px]">Trophées</span>
         </button>
         <button onclick="router('settings')" class="nav-item flex flex-col items-center justify-center w-1/5 text-gray-400 hover:text-white">
             <span class="text-xl mb-1">⚙️</span>
